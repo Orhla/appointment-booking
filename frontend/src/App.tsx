@@ -47,9 +47,17 @@ export default function App() {
                 {service.name}
               </span>
               <div className="text-sm text-gray-500 mt-1">
-                Длительность: {service.duration_min} мин | Цена:{" "}
+                Длительность:{" "}
+                {new Intl.NumberFormat("ru-RU", {
+                  style: "unit",
+                  unit: "minute",
+                }).format(service.duration_min)}{" "}
+                | Цена:{" "}
                 <span className="text-blue-600 font-medium">
-                  {service.price} руб.
+                  {new Intl.NumberFormat("ru-RU", {
+                    style: "currency",
+                    currency: "RUB",
+                  }).format(service.price)}
                 </span>
               </div>
             </li>
@@ -95,17 +103,19 @@ export default function App() {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Цена (руб):
+            Цена:{" "}
+            {form.price ? `${form.price.toLocaleString("ru-RU")} руб.` : ""}
           </label>
           <input
             type="number"
-            value={form.price}
+            value={form.price || ""}
             onChange={(e) =>
-              setForm({ ...form, price: Number(e.target.value) })
+              setForm({ ...form, price: e.target.valueAsNumber })
             }
             min={0}
+            step="0.01"
             required
-            className="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-300 rounded px-3 py-1.5 focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
