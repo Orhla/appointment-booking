@@ -5,7 +5,7 @@ import uuid
 from sqlalchemy import text
 from sqlalchemy.engine import make_url
 from app.config import get_settings
-from app.models import service
+import app.models
 from httpx import ASGITransport, AsyncClient
 from app.main import app
 
