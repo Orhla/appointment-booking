@@ -5,8 +5,8 @@ from sqlalchemy import pool
 
 from alembic import context
 from app.database import Base
-from app.models import service
-import os
+from app.config import get_settings
+import app.models
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -28,6 +28,8 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
+def get_sync_url() -> str:
+    return get_settings().database_url.replace("+asyncpg", "+psycopg")
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
@@ -41,7 +43,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = os.environ["DATABASE_URL"].replace("+asyncpg", "")
+    url = get_sync_url()
     config.set_main_option("sqlalchemy.url", url)
     context.configure(
         url=url,
@@ -61,8 +63,7 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    url = os.environ["DATABASE_URL"].replace("+asyncpg", "")
-    config.set_main_option("sqlalchemy.url", url)
+    config.set_main_option("sqlalchemy.url", get_sync_url())
 
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),

@@ -1,23 +1,29 @@
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
-from os import getenv
 from typing import AsyncGenerator
-from dotenv import load_dotenv
-
-load_dotenv()
-DATABASE_URL = getenv("DATABASE_DOCKER_URL")
-
-if not DATABASE_URL:
-    raise RuntimeError("Критическая ошибка: Переменная окружения DATABASE_DOCKER_URL не задана!")
-
-engine = create_async_engine(DATABASE_URL, echo=True)
-async_session_factory = async_sessionmaker(engine, expire_on_commit=False)
+from functools import lru_cache
+from app.config import get_settings
 
 
 class Base(DeclarativeBase):
     pass
 
+@lru_cache
+def get_engine() -> AsyncEngine:
+    settings = get_settings()
+    return create_async_engine(settings.database_url, echo=settings.db_echo)
+
+
+@lru_cache
+def get_session_factory() -> async_sessionmaker[AsyncSession]:
+    return async_sessionmaker(get_engine(), expire_on_commit=False)
+
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
-    async with async_session_factory() as session:
-        yield session
+    async with get_session_factory()() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception as e:
+            await session.rollback()
+            raise e
