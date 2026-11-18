@@ -13,3 +13,7 @@ class ServiceRead(BaseModel):
     price: Decimal
     
     model_config = {"from_attributes": True}
+
+class ServicePublic(BaseModel):
+    name: str = Field(..., min_length=1, max_length=1000)
+    duration_min: int = Field(..., gt=0)
